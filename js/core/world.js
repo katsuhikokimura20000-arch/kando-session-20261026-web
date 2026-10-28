@@ -31,8 +31,17 @@
   const list = [];
   const layers = new Set();
 
+  const isMobile = () => {
+    try {
+      return (navigator.maxTouchPoints || 0) > 0 || matchMedia('(pointer:coarse)').matches || Math.min(innerWidth, innerHeight) < 700;
+    } catch (e) {
+      return Math.min(innerWidth, innerHeight) < 700;
+    }
+  };
+
   function autoTier() {
     const gl = G.gl;
+    if (isMobile()) return 'low';
     let r = '';
     try {
       const ext = gl.getExtension('WEBGL_debug_renderer_info');
@@ -102,8 +111,16 @@
   }
   function applyTier() {
     const q = WD.q;
-    const dpr = (window.devicePixelRatio || 1) * (KS.params.export ? 1 : q.scale);
+    const rawDpr = window.devicePixelRatio || 1;
+    const cappedDpr = isMobile() && !KS.params.export ? Math.min(rawDpr, 2) : rawDpr;
+    const dpr = cappedDpr * (KS.params.export ? 1 : q.scale);
     let bw = Math.round(WD.cw * dpr), bh = Math.round(WD.ch * dpr);
+    const maxPixels = isMobile() && !KS.params.export ? 900000 : 8000000;
+    if (bw * bh > maxPixels) {
+      const k = Math.sqrt(maxPixels / (bw * bh));
+      bw = Math.max(1, Math.round(bw * k));
+      bh = Math.max(1, Math.round(bh * k));
+    }
     if (bw > q.maxW) {
       bh = Math.round((bh * q.maxW) / bw);
       bw = q.maxW;

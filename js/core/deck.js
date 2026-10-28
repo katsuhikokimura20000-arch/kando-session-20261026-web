@@ -464,7 +464,8 @@
         el.defaultMuted = true;
         el.loop = o.loop !== false;
         el.playsInline = true;
-        el.preload = 'auto';
+        const mobileVideo = (navigator.maxTouchPoints || 0) > 0 || (window.matchMedia && matchMedia('(pointer:coarse)').matches);
+        el.preload = mobileVideo ? 'metadata' : 'auto';
         el.setAttribute('muted', '');
         el.setAttribute('playsinline', '');
         el.poster = poster;
